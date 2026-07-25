@@ -3,27 +3,45 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * Handle an incoming authentication request.
-     */
+    public function register(RegisterRequest $request)
+    {
+        // Generate simple 6-digit OTP
+        $otp = rand(100000, 999999);
+        
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'user', // Default role
+            'otp' => $otp,
+            'otp_expires_at' => now()->addMinutes(10), // Expires in 10 mins
+        ]);
+
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user' => $user,
+            // In a real app, send OTP via email here instead of returning it directly
+            'otp' => $otp 
+        ], 201);
+    }
+
     public function login(LoginRequest $request)
     {
-        // Fitur Keamanan: Login Throttling (Anti-Spam/Brute Force)
         $this->ensureIsNotRateLimited($request);
 
-        // Fitur Keamanan: Anti-SQL Injection (SQLi) 
-        // Menggunakan Eloquent via Auth::attempt yang sudah di-binding PDO otomatis
-        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        if (! Auth::attempt($request->only('email', 'password'))) {
             RateLimiter::hit($this->throttleKey($request));
-
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -31,10 +49,8 @@ class AuthController extends Controller
 
         RateLimiter::clear($this->throttleKey($request));
 
-        RateLimiter::clear($this->throttleKey($request));
-
         $user = Auth::user();
-        $token = $user->createToken('admin-token')->plainTextToken;
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
@@ -43,28 +59,20 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->user()) {
+            $request->user()->currentAccessToken()->delete();
+        }
 
         return response()->json([
             'message' => 'Logged out successfully'
         ]);
     }
 
-    /**
-     * Ensure the login request is not rate limited.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     protected function ensureIsNotRateLimited(Request $request): void
     {
+        // Max 5 attempts per minute
         if (! RateLimiter::tooManyAttempts($this->throttleKey($request), 5)) {
             return;
         }
@@ -79,9 +87,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Get the rate limiting throttle key for the request.
-     */
     protected function throttleKey(Request $request): string
     {
         return strtolower($request->input('email')).'|'.$request->ip();

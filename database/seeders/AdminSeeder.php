@@ -14,12 +14,23 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Fitur Keamanan: Password harus di-hash
+        // Seeder untuk Admin
         User::updateOrCreate(
             ['email' => 'admin@bi-mengajar.id'],
             [
                 'name' => 'Administrator BI',
                 'password' => Hash::make('password'),
+                'role' => 'admin',
+            ]
+        );
+
+        // Seeder untuk User Biasa
+        User::updateOrCreate(
+            ['email' => 'user@bi-mengajar.id'],
+            [
+                'name' => 'User Instansi',
+                'password' => Hash::make('password'),
+                'role' => 'user',
             ]
         );
     }
