@@ -71,7 +71,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // About routes
     Route::post('/abouts/{type}', [AboutController::class, 'update']);
 
-<<<<<<< HEAD
     // CRUD for news (berita)
     Route::post('/news', [NewsController::class, 'store']);
     Route::post('/news/{id}', [NewsController::class, 'update']);
@@ -81,19 +80,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/dokumentasi', [DokumentasiController::class, 'store']);
     Route::post('/dokumentasi/{id}', [DokumentasiController::class, 'update']);
     Route::delete('/dokumentasi/{id}', [DokumentasiController::class, 'destroy']);
-=======
-    // Materi Edukasi (Admin CRUD)
-    Route::post('/kategori-materi', [\App\Http\Controllers\Api\KategoriMateriController::class, 'store'])->middleware('role:admin');
-    Route::put('/kategori-materi/{id}', [\App\Http\Controllers\Api\KategoriMateriController::class, 'update'])->middleware('role:admin');
-    Route::delete('/kategori-materi/{id}', [\App\Http\Controllers\Api\KategoriMateriController::class, 'destroy'])->middleware('role:admin');
-
-    Route::post('/materi-edukasi', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'store'])->middleware('role:admin');
-    Route::post('/materi-edukasi/{id}', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'update'])->middleware('role:admin'); // POST karena Form-Data upload
-    Route::delete('/materi-edukasi/{id}', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'destroy'])->middleware('role:admin');
->>>>>>> 98de938 (feat: implement educational material management module with categories and CRUD operations)
 });
-
-// Materi Edukasi (Public Routes)
-Route::get('/kategori-materi', [\App\Http\Controllers\Api\KategoriMateriController::class, 'index']);
-Route::get('/materi-edukasi', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'index']);
-Route::get('/materi-edukasi/{slug}', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'show']);
