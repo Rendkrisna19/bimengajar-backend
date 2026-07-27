@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\EdukasiLocationController;
 use App\Http\Controllers\Api\CoinProviderController;
 use App\Http\Controllers\Api\PengajuanEdukasiController;
 use App\Http\Controllers\Api\AboutController;
+use App\Http\Controllers\Api\NewsController;
+use App\Http\Controllers\Api\DokumentasiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +26,14 @@ Route::get('/locations', [EdukasiLocationController::class, 'index']);
 Route::get('/articles', [App\Http\Controllers\Api\ArticleController::class, 'index']);
 Route::get('/articles/{slug}', [App\Http\Controllers\Api\ArticleController::class, 'show']);
 Route::get('/abouts', [AboutController::class, 'index']);
+
+// News (Berita) — public
+Route::get('/news', [NewsController::class, 'index']);
+Route::get('/news/{slug}', [NewsController::class, 'show']);
+
+// Dokumentasi — public
+Route::get('/dokumentasi', [DokumentasiController::class, 'index']);
+Route::get('/dokumentasi/{id}', [DokumentasiController::class, 'show']);
 
 // Pojok Koin — public
 Route::get('/coin-providers', [CoinProviderController::class, 'index']);
@@ -60,4 +70,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // About routes
     Route::post('/abouts/{type}', [AboutController::class, 'update']);
+
+    // CRUD for news (berita)
+    Route::post('/news', [NewsController::class, 'store']);
+    Route::post('/news/{id}', [NewsController::class, 'update']);
+    Route::delete('/news/{id}', [NewsController::class, 'destroy']);
+
+    // CRUD for dokumentasi
+    Route::post('/dokumentasi', [DokumentasiController::class, 'store']);
+    Route::post('/dokumentasi/{id}', [DokumentasiController::class, 'update']);
+    Route::delete('/dokumentasi/{id}', [DokumentasiController::class, 'destroy']);
 });
