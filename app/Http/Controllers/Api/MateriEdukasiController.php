@@ -30,7 +30,7 @@ class MateriEdukasiController extends Controller
             $query->where('judul', 'like', '%' . $request->search . '%');
         }
 
-        $materis = $query->paginate(12);
+        $materis = $query->paginate(10);
 
         return response()->json([
             'message' => 'Berhasil mengambil data materi edukasi',
@@ -58,11 +58,37 @@ class MateriEdukasiController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'file_upload' => 'nullable|file|mimes:pdf,mp4,jpeg,png|max:10240',
             'link_eksternal' => 'nullable|string',
+            'link_youtube' => 'nullable|array',
+            'link_youtube.*' => 'nullable|string',
+            'link_drive' => 'nullable|array',
+            'link_drive.*' => 'nullable|string',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'konten_teks' => 'nullable|string'
         ]);
 
-        $data = $request->except(['thumbnail', 'file_upload']);
+        $data = $request->except(['thumbnail', 'file_upload', 'images']);
         $data['slug'] = Str::slug($request->judul) . '-' . uniqid();
+
+        if ($request->has('link_youtube')) {
+            $data['link_youtube'] = array_values(array_filter($request->link_youtube));
+        } else {
+            $data['link_youtube'] = [];
+        }
+
+        if ($request->has('link_drive')) {
+            $data['link_drive'] = array_values(array_filter($request->link_drive));
+        } else {
+            $data['link_drive'] = [];
+        }
+
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            foreach ($request->file('images') as $image) {
+                $imagePaths[] = $image->store('materi/images', 'public');
+            }
+            $data['images'] = $imagePaths;
+        }
 
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail'] = $request->file('thumbnail')->store('materi/thumbnails', 'public');
@@ -90,12 +116,42 @@ class MateriEdukasiController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'file_upload' => 'nullable|file|mimes:pdf,mp4,jpeg,png|max:10240',
             'link_eksternal' => 'nullable|string',
+            'link_youtube' => 'nullable|array',
+            'link_youtube.*' => 'nullable|string',
+            'link_drive' => 'nullable|array',
+            'link_drive.*' => 'nullable|string',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'konten_teks' => 'nullable|string'
         ]);
 
         $materi = MateriEdukasi::findOrFail($id);
-        $data = $request->except(['thumbnail', 'file_upload']);
+        $data = $request->except(['thumbnail', 'file_upload', 'images']);
         
+        if ($request->has('link_youtube')) {
+            $data['link_youtube'] = array_values(array_filter($request->link_youtube));
+        }
+
+        if ($request->has('link_drive')) {
+            $data['link_drive'] = array_values(array_filter($request->link_drive));
+        }
+
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            // Merge with existing images if needed, but standard edit is usually replace or append.
+            // For simplicity, we overwrite the existing extra images.
+            foreach ($request->file('images') as $image) {
+                $imagePaths[] = $image->store('materi/images', 'public');
+            }
+            // Delete old extra images if they exist
+            if ($materi->images) {
+                foreach ($materi->images as $oldImage) {
+                    Storage::disk('public')->delete($oldImage);
+                }
+            }
+            $data['images'] = $imagePaths;
+        }
+
         if ($request->judul !== $materi->judul) {
             $data['slug'] = Str::slug($request->judul) . '-' . uniqid();
         }
@@ -131,6 +187,11 @@ class MateriEdukasiController extends Controller
         }
         if ($materi->file_path) {
             Storage::disk('public')->delete($materi->file_path);
+        }
+        if ($materi->images) {
+            foreach ($materi->images as $img) {
+                Storage::disk('public')->delete($img);
+            }
         }
         
         $materi->delete();
