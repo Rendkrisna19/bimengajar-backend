@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\PengajuanEdukasiController;
 use App\Http\Controllers\Api\AboutController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\DokumentasiController;
+use App\Http\Controllers\Api\MitraController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,11 @@ Route::get('/news/{slug}', [NewsController::class, 'show']);
 // Dokumentasi — public
 Route::get('/dokumentasi', [DokumentasiController::class, 'index']);
 Route::get('/dokumentasi/{id}', [DokumentasiController::class, 'show']);
+
+// Mitra Edukasi — public
+Route::get('/mitras', [MitraController::class, 'index']);
+Route::post('/mitras', [MitraController::class, 'store']); // Public submit kolaborasi
+Route::get('/mitras/{id}', [MitraController::class, 'show']);
 
 // Pojok Koin — public
 Route::get('/coin-providers', [CoinProviderController::class, 'index']);
@@ -80,6 +86,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/dokumentasi', [DokumentasiController::class, 'store']);
     Route::post('/dokumentasi/{id}', [DokumentasiController::class, 'update']);
     Route::delete('/dokumentasi/{id}', [DokumentasiController::class, 'destroy']);
+
+    // Admin CRUD for mitras
+    Route::post('/mitras/{id}', [MitraController::class, 'update']);
+    Route::delete('/mitras/{id}', [MitraController::class, 'destroy']);
+    Route::patch('/mitras/{id}/status', [MitraController::class, 'toggleStatus']);
 
     // Materi Edukasi (Admin CRUD)
     Route::post('/kategori-materi', [\App\Http\Controllers\Api\KategoriMateriController::class, 'store'])->middleware('role:admin');
