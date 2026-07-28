@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\AboutController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\DokumentasiController;
 use App\Http\Controllers\Api\MitraController;
+use App\Http\Controllers\Api\TentangKamiController;
+use App\Http\Controllers\Api\KalenderKegiatanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,8 +48,17 @@ Route::get('/coin-providers', [CoinProviderController::class, 'index']);
 Route::post('/coin-providers', [CoinProviderController::class, 'store']);
 Route::get('/coin-providers/{id}', [CoinProviderController::class, 'show']);
 
+// Kalender Kegiatan — public
+Route::get('/kalender', [KalenderKegiatanController::class, 'index']);
+Route::get('/kalender/{id}', [KalenderKegiatanController::class, 'show']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // Kalender Kegiatan — protected
+    Route::post('/kalender', [KalenderKegiatanController::class, 'store']);
+    Route::put('/kalender/{id}', [KalenderKegiatanController::class, 'update']);
+    Route::delete('/kalender/{id}', [KalenderKegiatanController::class, 'destroy']);
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
