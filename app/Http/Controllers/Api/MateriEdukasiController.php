@@ -38,9 +38,12 @@ class MateriEdukasiController extends Controller
         ]);
     }
 
-    public function show($slug)
+    public function show($slugOrId)
     {
-        $materi = MateriEdukasi::with('kategori')->where('slug', $slug)->firstOrFail();
+        $materi = MateriEdukasi::with('kategori')
+            ->where('slug', $slugOrId)
+            ->orWhere('id', $slugOrId)
+            ->firstOrFail();
         
         return response()->json([
             'message' => 'Detail materi',
