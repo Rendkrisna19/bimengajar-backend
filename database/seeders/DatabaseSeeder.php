@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             EdukasiLocationSeeder::class,
             ArticleSeeder::class,
             MateriEdukasiSeeder::class,
+            UlasanSeeder::class,
+            NewsSeeder::class,
+            MateriEdukasiSeeder::class,
         ]);
     }
 }

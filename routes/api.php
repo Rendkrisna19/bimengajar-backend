@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\DokumentasiController;
 use App\Http\Controllers\Api\MitraController;
 use App\Http\Controllers\Api\TentangKamiController;
 use App\Http\Controllers\Api\KalenderKegiatanController;
+use App\Http\Controllers\Api\UlasanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +43,10 @@ Route::get('/dokumentasi/{id}', [DokumentasiController::class, 'show']);
 Route::get('/mitras', [MitraController::class, 'index']);
 Route::post('/mitras', [MitraController::class, 'store']); // Public submit kolaborasi
 Route::get('/mitras/{id}', [MitraController::class, 'show']);
+
+// Ulasan — public
+Route::get('/ulasan', [UlasanController::class, 'index']);
+Route::post('/ulasan', [UlasanController::class, 'store']);
 
 // Pojok Koin — public
 Route::get('/coin-providers', [CoinProviderController::class, 'index']);
