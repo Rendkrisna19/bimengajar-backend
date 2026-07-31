@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\MitraController;
 use App\Http\Controllers\Api\TentangKamiController;
 use App\Http\Controllers\Api\KalenderKegiatanController;
 use App\Http\Controllers\Api\UlasanController;
+use App\Http\Controllers\Api\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -67,6 +68,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
     // Pengajuan Edukasi
     Route::post('/pengajuan-edukasi', [PengajuanEdukasiController::class, 'store'])->middleware('throttle:10,1');
