@@ -31,16 +31,19 @@ class NewsController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title'    => 'required|string|max:255',
+            'author'   => 'nullable|string|max:100',
+            'description' => 'nullable|string',
             'content'  => 'nullable|string',
             'category' => 'nullable|in:berita,dokumentasi',
-            'images.*' => 'nullable|image|max:5120',
+            'published_at' => 'nullable|date',
+            'new_images.*' => 'nullable|image|max:5120',
         ]);
 
         $imagePaths = [];
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
+        if ($request->hasFile('new_images')) {
+            foreach ($request->file('new_images') as $image) {
                 $path = $image->store('news', 'public');
                 $imagePaths[] = config('app.url') . Storage::url($path);
             }
@@ -54,7 +57,7 @@ class NewsController extends Controller
             'content'     => $request->content,
             'category'    => $request->category ?? 'berita',
             'image'       => $imagePaths,
-            'published_at' => now(),
+            'published_at' => $request->published_at ?? now(),
         ]);
 
         return response()->json(['status' => 'success', 'data' => $news], 201);
@@ -66,13 +69,20 @@ class NewsController extends Controller
 
         $request->validate([
             'title'    => 'sometimes|required|string|max:255',
+            'author'   => 'nullable|string|max:100',
+            'description' => 'nullable|string',
+            'content'  => 'nullable|string',
             'category' => 'nullable|in:berita,dokumentasi',
-            'images.*' => 'nullable|image|max:5120',
+            'published_at' => 'nullable|date',
+            'existing_images' => 'nullable|array',
+            'existing_images.*' => 'string',
+            'new_images.*' => 'nullable|image|max:5120',
         ]);
 
-        $imagePaths = $news->image ?? [];
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
+        $imagePaths = $request->input('existing_images', []);
+        
+        if ($request->hasFile('new_images')) {
+            foreach ($request->file('new_images') as $image) {
                 $path = $image->store('news', 'public');
                 $imagePaths[] = config('app.url') . Storage::url($path);
             }
@@ -80,12 +90,13 @@ class NewsController extends Controller
 
         $news->update([
             'title'       => $request->title ?? $news->title,
-            'slug'        => $request->title ? Str::slug($request->title) . '-' . $news->id : $news->slug,
+            'slug'        => $request->title ? Str::slug($request->title) . '-' . time() : $news->slug,
             'author'      => $request->author ?? $news->author,
             'description' => $request->description ?? $news->description,
             'content'     => $request->content ?? $news->content,
             'category'    => $request->category ?? $news->category,
             'image'       => $imagePaths,
+            'published_at' => $request->published_at ?? $news->published_at,
         ]);
 
         return response()->json(['status' => 'success', 'data' => $news]);
