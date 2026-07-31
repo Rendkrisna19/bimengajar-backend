@@ -16,6 +16,22 @@ class DashboardController extends Controller
         $materi = MateriEdukasi::count();
         $berita = News::count();
 
+        // 1. Tren Pengajuan Edukasi (Line Chart) - per bulan untuk tahun ini
+        $tahunIni = date('Y');
+        $trenPengajuan = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $trenPengajuan[] = PengajuanEdukasi::whereYear('created_at', $tahunIni)
+                                ->whereMonth('created_at', $i)
+                                ->count();
+        }
+
+        // 2. Proporsi Kategori Edukasi (Donut Chart)
+        $proporsiMateri = \DB::table('materi_edukasis')
+            ->join('kategori_materis', 'materi_edukasis.kategori_materi_id', '=', 'kategori_materis.id')
+            ->select('kategori_materis.nama as name', \DB::raw('count(*) as value'))
+            ->groupBy('kategori_materis.id', 'kategori_materis.nama')
+            ->get();
+
         // Kunjungan web disimulasikan dari backend dengan random atau base value + random untuk kesan realtime asli jika tidak ada tabel visitor
         // Namun kita bisa biarkan ini di-handle oleh frontend atau berikan base value
         $baseKunjungan = 8920; 
@@ -26,7 +42,9 @@ class DashboardController extends Controller
                 'pengajuan_kunjungan' => $pengajuan,
                 'konten_edukasi' => $materi,
                 'berita_aktif' => $berita,
-                'kunjungan_web' => $baseKunjungan
+                'kunjungan_web' => $baseKunjungan,
+                'tren_pengajuan' => $trenPengajuan,
+                'proporsi_materi' => $proporsiMateri
             ]
         ]);
     }
