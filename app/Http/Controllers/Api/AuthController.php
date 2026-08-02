@@ -11,12 +11,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendOtpMail;
 
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request)
     {
-        // Generate simple 6-digit OTP
         $otp = rand(100000, 999999);
         
         $user = User::create([
@@ -25,14 +26,19 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => 'user', // Default role
             'otp' => $otp,
-            'otp_expires_at' => now()->addMinutes(10), // Expires in 10 mins
+            'otp_expires_at' => now()->addMinutes(10), 
         ]);
 
+        try {
+            Mail::to($user->email)->send(new SendOtpMail($otp, $user));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send OTP: ' . $e->getMessage());
+        }
+
         return response()->json([
-            'message' => 'User registered successfully',
+            'message' => 'User registered successfully. Please verify your email with the OTP sent.',
             'user' => $user,
-            // In a real app, send OTP via email here instead of returning it directly
-            'otp' => $otp 
+            'requires_otp' => true
         ], 201);
     }
 
@@ -50,12 +56,106 @@ class AuthController extends Controller
         RateLimiter::clear($this->throttleKey($request));
 
         $user = Auth::user();
+
+        if ($user->role === 'user' && is_null($user->email_verified_at)) {
+            // Generate new OTP if expired or not exists
+            if (is_null($user->otp) || $user->otp_expires_at < now()) {
+                $otp = rand(100000, 999999);
+                $user->update([
+                    'otp' => $otp,
+                    'otp_expires_at' => now()->addMinutes(10)
+                ]);
+                
+                try {
+                    Mail::to($user->email)->send(new SendOtpMail($otp, $user));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send OTP: ' . $e->getMessage());
+                }
+            }
+
+            return response()->json([
+                'message' => 'Silakan verifikasi akun Anda terlebih dahulu.',
+                'requires_otp' => true,
+                'email' => $user->email
+            ], 403);
+        }
+
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
             'user' => $user,
             'token' => $token
+        ]);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if ($user->otp !== $request->otp) {
+            return response()->json(['message' => 'Kode OTP salah'], 400);
+        }
+
+        if ($user->otp_expires_at < now()) {
+            return response()->json(['message' => 'Kode OTP kedaluwarsa'], 400);
+        }
+
+        $user->update([
+            'email_verified_at' => now(),
+            'otp' => null,
+            'otp_expires_at' => null,
+        ]);
+
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Verifikasi berhasil!',
+            'user' => $user,
+            'token' => $token
+        ]);
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if (!is_null($user->email_verified_at)) {
+            return response()->json(['message' => 'Akun sudah diverifikasi'], 400);
+        }
+
+        $otp = rand(100000, 999999);
+        $user->update([
+            'otp' => $otp,
+            'otp_expires_at' => now()->addMinutes(10)
+        ]);
+
+        try {
+            Mail::to($user->email)->send(new SendOtpMail($otp, $user));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send OTP: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal mengirim email OTP'], 500);
+        }
+
+        return response()->json([
+            'message' => 'Kode OTP berhasil dikirim ulang.'
         ]);
     }
 
@@ -72,7 +172,6 @@ class AuthController extends Controller
 
     protected function ensureIsNotRateLimited(Request $request): void
     {
-        // Max 5 attempts per minute
         if (! RateLimiter::tooManyAttempts($this->throttleKey($request), 5)) {
             return;
         }
