@@ -7,6 +7,8 @@ use App\Http\Requests\StorePengajuanEdukasiRequest;
 use App\Models\PengajuanEdukasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PengajuanStatusUpdated;
 
 class PengajuanEdukasiController extends Controller
 {
@@ -93,6 +95,12 @@ class PengajuanEdukasiController extends Controller
         }
 
         $pengajuan->save();
+
+        try {
+            Mail::to($pengajuan->email_pic)->send(new PengajuanStatusUpdated($pengajuan));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to queue status update email: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Status pengajuan berhasil diperbarui.',
