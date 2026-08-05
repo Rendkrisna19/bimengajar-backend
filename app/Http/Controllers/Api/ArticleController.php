@@ -10,7 +10,8 @@ class ArticleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Article::orderBy('published_at', 'desc');
+        $query = Article::select('id', 'title', 'slug', 'author', 'image', 'description', 'published_at', 'created_at', 'updated_at')
+            ->orderBy('published_at', 'desc');
         
         if (!$request->has('all')) {
             $query->take(5);   

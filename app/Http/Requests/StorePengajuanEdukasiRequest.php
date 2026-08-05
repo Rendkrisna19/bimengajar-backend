@@ -23,6 +23,7 @@ class StorePengajuanEdukasiRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'jenis_pengajuan' => 'required|in:mengunjungi,dikunjungi',
             'jenis_instansi' => 'required|string|max:100',
             'nama_instansi' => 'required|string|max:255',
             'alamat_instansi' => 'required|string',
@@ -37,7 +38,7 @@ class StorePengajuanEdukasiRequest extends FormRequest
             'waktu_mulai' => 'nullable|date_format:H:i',
             'waktu_selesai' => 'nullable|date_format:H:i|after:waktu_mulai',
             'lokasi_kegiatan' => 'nullable|string|max:255',
-            'dokumen_proposal' => 'required|file|mimes:pdf|max:10240', // PDF max 10MB
+            'dokumen_proposal' => 'nullable|file|mimes:pdf|max:10240', // PDF max 10MB (optional)
         ];
     }
 }

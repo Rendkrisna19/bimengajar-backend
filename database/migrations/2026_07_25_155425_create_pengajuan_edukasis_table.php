@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             
+            $table->enum('jenis_pengajuan', ['mengunjungi', 'dikunjungi'])->default('mengunjungi');
+            
             // Data Instansi
             $table->string('jenis_instansi');
             $table->string('nama_instansi');

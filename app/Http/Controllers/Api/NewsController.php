@@ -12,7 +12,8 @@ class NewsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = News::orderBy('published_at', 'desc');
+        $query = News::select('id', 'title', 'slug', 'author', 'image', 'description', 'category', 'published_at', 'created_at', 'updated_at')
+            ->orderBy('published_at', 'desc');
 
         if ($request->has('category')) {
             $query->where('category', $request->category);

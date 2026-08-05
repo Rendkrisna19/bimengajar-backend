@@ -8,6 +8,7 @@ class PengajuanEdukasi extends Model
 {
     protected $fillable = [
         'user_id',
+        'jenis_pengajuan',
         'jenis_instansi',
         'nama_instansi',
         'alamat_instansi',
