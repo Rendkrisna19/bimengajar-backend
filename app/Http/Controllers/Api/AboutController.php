@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\About;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class AboutController extends Controller
 {
     public function index()
     {
-        $abouts = About::all()->keyBy('type');
+        $abouts = Cache::remember('abouts_all', 3600, function () {
+            return About::all()->keyBy('type');
+        });
         return response()->json([
             'status' => 'success',
             'data' => $abouts
@@ -55,6 +58,8 @@ class AboutController extends Controller
         }
 
         $about->save();
+
+        Cache::forget('abouts_all');
 
         return response()->json([
             'status' => 'success',
