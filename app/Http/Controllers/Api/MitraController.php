@@ -12,7 +12,7 @@ class MitraController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Mitra::query();
+        $query = Mitra::select('id', 'logo', 'singkatan', 'nama_lengkap', 'kategori', 'lokasi', 'no_wa', 'deskripsi');
 
         $user = $request->user('sanctum');
         // If public request, only show active & accepted

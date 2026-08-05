@@ -13,13 +13,11 @@ class ArticleController extends Controller
         $query = Article::select('id', 'title', 'slug', 'author', 'image', 'description', 'published_at', 'created_at', 'updated_at')
             ->orderBy('published_at', 'desc');
         
-        if (!$request->has('all')) {
-            $query->take(5);   
-        }
-        
+        $articles = $request->has('all') ? $query->get() : $query->paginate($request->per_page ?? 8);
+
         return response()->json([
             'status' => 'success',
-            'data' => $query->get()       
+            'data' => $articles       
         ]);
     }
 

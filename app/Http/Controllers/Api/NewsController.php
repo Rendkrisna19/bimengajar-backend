@@ -19,7 +19,7 @@ class NewsController extends Controller
             $query->where('category', $request->category);
         }
 
-        $news = $request->has('all') ? $query->get() : $query->paginate(10);
+        $news = $request->has('all') ? $query->get() : $query->paginate($request->per_page ?? 8);
 
         return response()->json(['status' => 'success', 'data' => $news]);
     }

@@ -26,14 +26,20 @@ class CoinProviderController extends Controller
             $lng    = (float) $request->lng;
             $radius = (float) $request->radius;
 
-            $query->selectRaw("*, 
-                (6371 * acos(
-                    cos(radians(?)) * cos(radians(latitude)) 
-                    * cos(radians(longitude) - radians(?)) 
-                    + sin(radians(?)) * sin(radians(latitude))
-                )) AS distance", [$lat, $lng, $lat])
-                ->havingRaw("distance < ?", [$radius])
-                ->orderByRaw("distance ASC");
+            // Bounding box approximation to speed up query
+            $latRadius = $radius / 111.045;
+            $lngRadius = $radius / (111.045 * cos(deg2rad($lat)));
+
+            $query->whereBetween('latitude', [$lat - $latRadius, $lat + $latRadius])
+                  ->whereBetween('longitude', [$lng - $lngRadius, $lng + $lngRadius])
+                  ->selectRaw("coin_providers.*, 
+                      (6371 * acos(
+                          cos(radians(?)) * cos(radians(latitude)) 
+                          * cos(radians(longitude) - radians(?)) 
+                          + sin(radians(?)) * sin(radians(latitude))
+                      )) AS distance", [$lat, $lng, $lat])
+                  ->havingRaw("distance < ?", [$radius])
+                  ->orderByRaw("distance ASC");
         } else {
             $query->orderBy('created_at', 'desc');
         }
