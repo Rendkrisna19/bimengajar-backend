@@ -59,7 +59,7 @@ class DokumentasiController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $img) {
                 $path = $img->store('dokumentasi', 'public');
-                $imagePaths[] = config('app.url') . Storage::url($path);
+                $imagePaths[] = Storage::url($path);
             }
         }
 
@@ -103,7 +103,8 @@ class DokumentasiController extends Controller
             $toRemove = json_decode($request->remove_images, true) ?? [];
             foreach ($toRemove as $idx) {
                 if (isset($imagePaths[$idx])) {
-                    $relativePath = str_replace('/storage/', '', $imagePaths[$idx]);
+                    $urlPath = parse_url($imagePaths[$idx], PHP_URL_PATH) ?? $imagePaths[$idx];
+                    $relativePath = ltrim(str_replace('/storage/', '', $urlPath), '/');
                     Storage::disk('public')->delete($relativePath);
                 }
             }
@@ -114,7 +115,7 @@ class DokumentasiController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $img) {
                 $path = $img->store('dokumentasi', 'public');
-                $imagePaths[] = config('app.url') . Storage::url($path);
+                $imagePaths[] = Storage::url($path);
             }
         }
 
@@ -147,7 +148,8 @@ class DokumentasiController extends Controller
         // Delete stored images
         if ($dok->images) {
             foreach ($dok->images as $url) {
-                $relativePath = str_replace('/storage/', '', $url);
+                $urlPath = parse_url($url, PHP_URL_PATH) ?? $url;
+                $relativePath = ltrim(str_replace('/storage/', '', $urlPath), '/');
                 Storage::disk('public')->delete($relativePath);
             }
         }
