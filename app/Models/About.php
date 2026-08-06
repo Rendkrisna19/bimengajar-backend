@@ -12,7 +12,9 @@ class About extends Model
     protected $fillable = [
         'type',
         'title',
+        'title_en',
         'content',
+        'content_en',
         'image',
     ];
 }

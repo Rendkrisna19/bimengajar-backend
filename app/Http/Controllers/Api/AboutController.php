@@ -34,7 +34,9 @@ class AboutController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'content_en' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
@@ -44,7 +46,9 @@ class AboutController extends Controller
         );
 
         $about->title = $request->title;
+        $about->title_en = $request->title_en ?? $about->title_en;
         $about->content = $request->content;
+        $about->content_en = $request->content_en ?? $about->content_en;
 
         if ($request->hasFile('image')) {
             // Delete old image if exists
