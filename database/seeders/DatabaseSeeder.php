@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             UlasanSeeder::class,
             NewsSeeder::class,
             AboutSeeder::class,
+            BannerSeeder::class,
         ]);
     }
 }

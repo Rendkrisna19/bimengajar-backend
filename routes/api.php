@@ -38,6 +38,10 @@ Route::get('/abouts', [AboutController::class, 'index']);
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/news/{slug}', [NewsController::class, 'show']);
 
+// Hero Banner — public
+Route::get('/hero-banners', [App\Http\Controllers\Api\HeroBannerController::class, 'index']);
+Route::get('/hero-banners/{id}', [App\Http\Controllers\Api\HeroBannerController::class, 'show']);
+
 // Dokumentasi — public
 Route::get('/dokumentasi', [DokumentasiController::class, 'index']);
 Route::get('/dokumentasi/{id}', [DokumentasiController::class, 'show']);
@@ -122,6 +126,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/materi-edukasi', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'store'])->middleware('role:admin');
     Route::post('/materi-edukasi/{id}', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'update'])->middleware('role:admin'); // POST karena Form-Data upload
     Route::delete('/materi-edukasi/{id}', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'destroy'])->middleware('role:admin');
+    // Hero Banner (Admin CRUD)
+    Route::post('/hero-banners', [App\Http\Controllers\Api\HeroBannerController::class, 'store']);
+    Route::post('/hero-banners/{id}', [App\Http\Controllers\Api\HeroBannerController::class, 'update']);
+    Route::delete('/hero-banners/{id}', [App\Http\Controllers\Api\HeroBannerController::class, 'destroy']);
+    Route::patch('/hero-banners/{id}/toggle', [App\Http\Controllers\Api\HeroBannerController::class, 'toggleActive']);
 });
 
 // Materi Edukasi (Public Routes)
