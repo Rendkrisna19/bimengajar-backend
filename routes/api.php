@@ -38,6 +38,33 @@ Route::get('/abouts', [AboutController::class, 'index']);
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/news/{slug}', [NewsController::class, 'show']);
 
+// Test route to check Kemdikbud API
+Route::get('/test-kemdikbud', function (Request $request) {
+    try {
+        $url = env('API_SEKOLAH_URL', 'https://dapo.kemdikbud.go.id/api/getSekolah');
+        // Add minimal headers to simulate a real browser request, as some government APIs block default HTTP clients
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'Accept' => 'application/json',
+        ])->timeout(10)->get($url);
+        
+        return response()->json([
+            'status' => $response->status(),
+            'successful' => $response->successful(),
+            'body' => $response->json() ?? $response->body()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
+// External API Search (Public)
+Route::get('/locations/external', [App\Http\Controllers\Api\EdukasiLocationController::class, 'searchExternal']);
+Route::get('/locations/external-count', [App\Http\Controllers\Api\EdukasiLocationController::class, 'getExternalCount']);
+
 // Hero Banner — public
 Route::get('/hero-banners', [App\Http\Controllers\Api\HeroBannerController::class, 'index']);
 Route::get('/hero-banners/{id}', [App\Http\Controllers\Api\HeroBannerController::class, 'show']);

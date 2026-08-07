@@ -49,6 +49,7 @@ class EdukasiLocationSeeder extends Seeder
                     'latitude' => $loc['latitude'],
                     'longitude' => $loc['longitude'],
                     'address' => 'Kota Pematang Siantar',
+                    'province' => 'Sumatera Utara',
                     'description' => 'Telah teredukasi dalam program BI Mengajar Pematang Siantar.',
                     'activities' => [],
                     'photos' => []

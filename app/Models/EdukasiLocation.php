@@ -16,6 +16,7 @@ class EdukasiLocation extends Model
         'latitude',
         'longitude',
         'address',
+        'province',
         'description',
         'activities',
         'photos'
