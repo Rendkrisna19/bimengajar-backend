@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOtpMail;
+use App\Mail\ResetPasswordOtpMail;
 
 class AuthController extends Controller
 {
@@ -156,6 +157,100 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Kode OTP berhasil dikirim ulang.'
+        ]);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.exists' => 'Email ini belum terdaftar di sistem kami.',
+        ]);
+
+        $throttleKey = 'forgot-password|' . strtolower($request->email) . '|' . $request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return response()->json([
+                'message' => 'Terlalu banyak permintaan reset password. Silakan coba lagi dalam ' . ceil($seconds / 60) . ' menit.'
+            ], 429);
+        }
+        RateLimiter::hit($throttleKey, 600);
+
+        $user = User::where('email', $request->email)->first();
+
+        $otp = (string) random_int(100000, 999999);
+
+        $user->update([
+            'otp' => $otp,
+            'otp_expires_at' => now()->addMinutes(10),
+        ]);
+
+        try {
+            Mail::to($user->email)->send(new ResetPasswordOtpMail($otp, $user));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send Reset Password OTP: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal mengirim email OTP. Silakan periksa koneksi internet.'], 500);
+        }
+
+        return response()->json([
+            'message' => 'Kode OTP untuk reset password telah dikirim ke email Anda.',
+            'email' => $user->email
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|string|size:6',
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.exists' => 'Email tidak terdaftar.',
+            'otp.required' => 'Kode OTP wajib diisi.',
+            'otp.size' => 'Kode OTP harus 6 digit.',
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        $otpThrottleKey = 'reset-otp-attempts|' . strtolower($request->email);
+        if (RateLimiter::tooManyAttempts($otpThrottleKey, 5)) {
+            $seconds = RateLimiter::availableIn($otpThrottleKey);
+            return response()->json([
+                'message' => 'Terlalu banyak percobaan OTP yang salah. Akses diblokir sementara selama ' . ceil($seconds / 60) . ' menit.'
+            ], 429);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || $user->otp !== $request->otp) {
+            RateLimiter::hit($otpThrottleKey, 900);
+            return response()->json(['message' => 'Kode OTP tidak valid atau salah.'], 400);
+        }
+
+        if ($user->otp_expires_at < now()) {
+            return response()->json(['message' => 'Kode OTP sudah kedaluwarsa. Silakan ajukan reset password kembali.'], 400);
+        }
+
+        // Secure Database Update
+        $user->update([
+            'password' => Hash::make($request->password),
+            'otp' => null,
+            'otp_expires_at' => null,
+        ]);
+
+        // Revoke all existing tokens for enterprise-grade security
+        $user->tokens()->delete();
+
+        // Clear rate limiters
+        RateLimiter::clear($otpThrottleKey);
+
+        return response()->json([
+            'message' => 'Password Anda berhasil diperbarui! Silakan login kembali dengan password baru Anda.'
         ]);
     }
 
