@@ -160,6 +160,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/hero-banners/{id}', [App\Http\Controllers\Api\HeroBannerController::class, 'update']);
     Route::delete('/hero-banners/{id}', [App\Http\Controllers\Api\HeroBannerController::class, 'destroy']);
     Route::patch('/hero-banners/{id}/toggle', [App\Http\Controllers\Api\HeroBannerController::class, 'toggleActive']);
+
+    // Manajemen User
+    Route::get('/users', [App\Http\Controllers\Api\UserController::class, 'index'])->middleware('role:admin');
+    Route::post('/users', [App\Http\Controllers\Api\UserController::class, 'store'])->middleware('role:admin');
+    Route::get('/users/{id}', [App\Http\Controllers\Api\UserController::class, 'show'])->middleware('role:admin');
+    Route::put('/users/{id}', [App\Http\Controllers\Api\UserController::class, 'update'])->middleware('role:admin');
+    Route::delete('/users/{id}', [App\Http\Controllers\Api\UserController::class, 'destroy'])->middleware('role:admin');
 });
 
 // Materi Edukasi (Public Routes)
