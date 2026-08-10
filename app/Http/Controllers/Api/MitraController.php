@@ -12,7 +12,7 @@ class MitraController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Mitra::select('id', 'logo', 'singkatan', 'nama_lengkap', 'kategori', 'lokasi', 'no_wa', 'deskripsi');
+        $query = Mitra::select('id', 'logo', 'singkatan', 'nama_lengkap', 'kategori', 'lokasi', 'no_wa', 'deskripsi', 'is_active', 'status_persetujuan', 'created_at');
 
         $user = $request->user('sanctum');
         // If public request, only show active & accepted
@@ -147,8 +147,8 @@ class MitraController extends Controller
         if ($request->has('status_persetujuan')) {
             $mitra->status_persetujuan = $request->status_persetujuan;
         }
-        if ($request->has('is_active')) {
-            $mitra->is_active = $request->is_active;
+        if ($request->exists('is_active')) {
+            $mitra->is_active = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
         }
         $mitra->save();
 
