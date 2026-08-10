@@ -17,7 +17,7 @@ class MitraController extends Controller
         $user = $request->user('sanctum');
         // If public request, only show active & accepted
         if (!$user || $user->role !== 'admin') {
-            $query->where('is_active', true)->where('status_persetujuan', 'diterima');
+            $query->where('is_active', 1)->where('status_persetujuan', 'diterima');
         }
 
         // Search
