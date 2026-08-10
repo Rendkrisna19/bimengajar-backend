@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class KategoriMateri extends Model
 {
-    protected $fillable = ['nama', 'slug'];
+    protected $fillable = ['nama', 'slug', 'logo'];
 
     public function materis()
     {

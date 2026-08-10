@@ -149,7 +149,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Materi Edukasi (Admin CRUD)
     Route::post('/kategori-materi', [\App\Http\Controllers\Api\KategoriMateriController::class, 'store'])->middleware('role:admin');
-    Route::put('/kategori-materi/{id}', [\App\Http\Controllers\Api\KategoriMateriController::class, 'update'])->middleware('role:admin');
+    Route::post('/kategori-materi/{id}', [\App\Http\Controllers\Api\KategoriMateriController::class, 'update'])->middleware('role:admin'); // POST for form-data
     Route::delete('/kategori-materi/{id}', [\App\Http\Controllers\Api\KategoriMateriController::class, 'destroy'])->middleware('role:admin');
 
     Route::post('/materi-edukasi', [\App\Http\Controllers\Api\MateriEdukasiController::class, 'store'])->middleware('role:admin');
