@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'foto_profil',
         'otp',
         'otp_expires_at',
         'email_verified_at',

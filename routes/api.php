@@ -95,6 +95,8 @@ Route::get('/kalender/{id}', [KalenderKegiatanController::class, 'show']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::post('/profile', [AuthController::class, 'updateProfile']);
     
     // Kalender Kegiatan — protected
     Route::post('/kalender', [KalenderKegiatanController::class, 'store']);

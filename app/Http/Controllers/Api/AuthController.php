@@ -265,6 +265,53 @@ class AuthController extends Controller
         ]);
     }
 
+    public function profile(Request $request)
+    {
+        return response()->json([
+            'status' => 'success',
+            'user' => $request->user()
+        ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:6',
+            'foto_profil' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        if ($request->hasFile('foto_profil')) {
+            $path = $request->file('foto_profil')->store('profil', 'public');
+            $user->foto_profil = '/storage/' . $path;
+        }
+
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profil berhasil diperbarui!',
+            'user' => $user
+        ]);
+    }
+
     protected function ensureIsNotRateLimited(Request $request): void
     {
         if (! RateLimiter::tooManyAttempts($this->throttleKey($request), 5)) {
