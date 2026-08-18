@@ -12,7 +12,12 @@ class MateriEdukasiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MateriEdukasi::with('kategori')->latest();
+        $query = MateriEdukasi::with('kategori')
+            ->select([
+                'id', 'kategori_materi_id', 'slug', 'judul', 'deskripsi_singkat', 
+                'jenis_konten', 'thumbnail', 'created_at', 'updated_at'
+            ])
+            ->latest();
 
         // Filter by Kategori ID
         if ($request->has('kategori_id') && $request->kategori_id != '') {
