@@ -58,15 +58,15 @@ class MateriEdukasiController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi_singkat' => 'nullable|string',
             'jenis_konten' => 'required|in:Artikel,Infografis,Video,E-Book,Presentasi',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'file_upload' => 'nullable|file|mimes:pdf,mp4,jpeg,png|max:10240',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'file_upload' => 'nullable|file|mimes:pdf,mp4,jpeg,png,webp,zip,docx|max:51200',
             'link_eksternal' => 'nullable|string',
             'link_youtube' => 'nullable|array',
             'link_youtube.*' => 'nullable|string',
             'link_drive' => 'nullable|array',
             'link_drive.*' => 'nullable|string',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:10240',
             'konten_teks' => 'nullable|string'
         ]);
 
@@ -116,15 +116,15 @@ class MateriEdukasiController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi_singkat' => 'nullable|string',
             'jenis_konten' => 'required|in:Artikel,Infografis,Video,E-Book,Presentasi',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'file_upload' => 'nullable|file|mimes:pdf,mp4,jpeg,png|max:10240',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'file_upload' => 'nullable|file|mimes:pdf,mp4,jpeg,png,webp,zip,docx|max:51200',
             'link_eksternal' => 'nullable|string',
             'link_youtube' => 'nullable|array',
             'link_youtube.*' => 'nullable|string',
             'link_drive' => 'nullable|array',
             'link_drive.*' => 'nullable|string',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:10240',
             'konten_teks' => 'nullable|string'
         ]);
 
