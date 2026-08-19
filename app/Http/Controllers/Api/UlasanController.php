@@ -10,7 +10,7 @@ class UlasanController extends Controller
 {
     public function index()
     {
-        $ulasan = Ulasan::orderBy('created_at', 'desc')->get();
+        $ulasan = Ulasan::orderBy('created_at', 'desc')->take(50)->get();
         return response()->json([
             'status' => 'success',
             'data' => $ulasan
