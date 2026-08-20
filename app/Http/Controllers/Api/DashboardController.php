@@ -26,6 +26,95 @@ class DashboardController extends Controller
         }
     }
 
+    public function getPublicAnalytics(Request $request)
+    {
+        try {
+            $filterType = $request->query('filter_type', 'daily'); // 'daily', 'monthly', 'yearly'
+            $hari = $request->query('hari');
+            $bulan = $request->query('bulan', date('m'));
+            $tahun = $request->query('tahun', date('Y'));
+
+            // Total overall visits
+            $totalVisits = PageView::count();
+
+            // Today's visits vs Yesterday's visits for percentage growth calculation
+            $todayVisits = PageView::whereDate('visited_date', Carbon::today())->count();
+            $yesterdayVisits = PageView::whereDate('visited_date', Carbon::yesterday())->count();
+
+            if ($yesterdayVisits > 0) {
+                $growthPercentage = round((($todayVisits - $yesterdayVisits) / $yesterdayVisits) * 100, 1);
+            } else {
+                $growthPercentage = $todayVisits > 0 ? 100 : 0;
+            }
+
+            // Available years (dynamic starting from 2025 to current year + 2 e.g. 2027+)
+            $dbYears = PageView::selectRaw('YEAR(visited_date) as year')
+                ->distinct()
+                ->pluck('year')
+                ->toArray();
+            $currentYear = (int)date('Y');
+            $allYears = array_unique(array_merge([2025, $currentYear, $currentYear + 1, $currentYear + 2], $dbYears));
+            sort($allYears);
+
+            $chartLabels = [];
+            $chartValues = [];
+
+            if ($filterType === 'yearly') {
+                // Group by year
+                foreach ($allYears as $y) {
+                    $cnt = PageView::whereYear('visited_date', $y)->count();
+                    $chartLabels[] = (string)$y;
+                    $chartValues[] = $cnt;
+                }
+            } elseif ($filterType === 'monthly') {
+                // Group by 12 months for selected year
+                $selectedYear = (int)$tahun;
+                $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                for ($m = 1; $m <= 12; $m++) {
+                    $cnt = PageView::whereYear('visited_date', $selectedYear)
+                        ->whereMonth('visited_date', $m)
+                        ->count();
+                    $chartLabels[] = $monthNames[$m - 1];
+                    $chartValues[] = $cnt;
+                }
+            } else {
+                // 'daily' filter - group by days in selected month and year
+                $selectedBulanInt = (int)$bulan;
+                $selectedTahunInt = (int)$tahun;
+                $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $selectedBulanInt, $selectedTahunInt);
+
+                $dailyDbViews = PageView::whereYear('visited_date', $selectedTahunInt)
+                    ->whereMonth('visited_date', $selectedBulanInt)
+                    ->selectRaw('DAY(visited_date) as day, COUNT(*) as count')
+                    ->groupBy('day')
+                    ->pluck('count', 'day')
+                    ->toArray();
+
+                for ($d = 1; $d <= $daysInMonth; $d++) {
+                    $chartLabels[] = "Tgl " . $d;
+                    $chartValues[] = isset($dailyDbViews[$d]) ? (int)$dailyDbViews[$d] : 0;
+                }
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'total_visits' => $totalVisits,
+                    'today_visits' => $todayVisits,
+                    'yesterday_visits' => $yesterdayVisits,
+                    'growth_percentage' => $growthPercentage,
+                    'available_years' => array_values($allYears),
+                    'chart' => [
+                        'labels' => $chartLabels,
+                        'values' => $chartValues,
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function index(Request $request)
     {
         $hari = $request->query('hari');

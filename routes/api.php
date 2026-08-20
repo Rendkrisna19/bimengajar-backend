@@ -32,6 +32,7 @@ Route::middleware('throttle:10,1')->group(function () {
 
 // Public routes
 Route::post('/track-visit', [DashboardController::class, 'trackVisit']);
+Route::get('/public-analytics', [DashboardController::class, 'getPublicAnalytics']);
 Route::get('/locations', [EdukasiLocationController::class, 'index']);
 Route::get('/articles', [App\Http\Controllers\Api\ArticleController::class, 'index']);
 Route::get('/articles/{slug}', [App\Http\Controllers\Api\ArticleController::class, 'show']);
