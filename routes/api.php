@@ -165,6 +165,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/hero-banners/{id}', [App\Http\Controllers\Api\HeroBannerController::class, 'destroy']);
     Route::patch('/hero-banners/{id}/toggle', [App\Http\Controllers\Api\HeroBannerController::class, 'toggleActive']);
 
+    // Ulasan (Admin CRUD)
+    Route::patch('/ulasan/{id}/status', [UlasanController::class, 'updateStatus']);
+    Route::put('/ulasan/{id}', [UlasanController::class, 'update']);
+    Route::delete('/ulasan/{id}', [UlasanController::class, 'destroy']);
+
     // Manajemen User
     Route::get('/users', [App\Http\Controllers\Api\UserController::class, 'index'])->middleware('role:admin');
     Route::post('/users', [App\Http\Controllers\Api\UserController::class, 'store'])->middleware('role:admin');

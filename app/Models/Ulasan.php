@@ -15,5 +15,6 @@ class Ulasan extends Model
         'instansi',
         'komentar',
         'rating',
+        'status',
     ];
 }

@@ -27,11 +27,46 @@ class UlasanController extends Controller
             'rating' => 'required|integer|min:1|max:5',
         ]);
 
+        $validated['status'] = $request->input('status', 'disetujui');
         $ulasan = Ulasan::create($validated);
 
         return response()->json([
             'status' => 'success',
             'data' => $ulasan
         ], 201);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $ulasan = Ulasan::findOrFail($id);
+        $ulasan->status = $request->input('status', 'disetujui');
+        $ulasan->save();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $ulasan
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $ulasan = Ulasan::findOrFail($id);
+        $ulasan->update($request->all());
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $ulasan
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $ulasan = Ulasan::findOrFail($id);
+        $ulasan->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Ulasan berhasil dihapus'
+        ]);
     }
 }
