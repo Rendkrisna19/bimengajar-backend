@@ -31,6 +31,7 @@ Route::middleware('throttle:5,1')->group(function () {
 });
 
 // Public routes
+Route::get('/footer-settings', [\App\Http\Controllers\Api\FooterSettingController::class, 'index']);
 Route::post('/track-visit', [DashboardController::class, 'trackVisit']);
 Route::get('/public-analytics', [DashboardController::class, 'getPublicAnalytics']);
 Route::get('/locations', [EdukasiLocationController::class, 'index']);
@@ -169,6 +170,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/ulasan/{id}/status', [UlasanController::class, 'updateStatus']);
     Route::put('/ulasan/{id}', [UlasanController::class, 'update']);
     Route::delete('/ulasan/{id}', [UlasanController::class, 'destroy']);
+
+    // Footer Settings (Admin CMS)
+    Route::post('/footer-settings', [\App\Http\Controllers\Api\FooterSettingController::class, 'update']);
+    Route::put('/footer-settings', [\App\Http\Controllers\Api\FooterSettingController::class, 'update']);
 
     // Manajemen User
     Route::get('/users', [App\Http\Controllers\Api\UserController::class, 'index'])->middleware('role:admin');
