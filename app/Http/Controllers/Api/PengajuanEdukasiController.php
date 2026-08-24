@@ -8,6 +8,8 @@ use App\Models\PengajuanEdukasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\PengajuanBaruAdminMail;
 use App\Mail\PengajuanStatusUpdated;
 
 class PengajuanEdukasiController extends Controller
@@ -51,6 +53,17 @@ class PengajuanEdukasiController extends Controller
         $data['status'] = 'pending'; // Default status
 
         $pengajuan = PengajuanEdukasi::create($data);
+        $pengajuan->load('user');
+
+        // Kirim email notifikasi ke admin (dengan lampiran file proposal)
+        try {
+            $adminEmail = config('mail.from.address') ?: env('MAIL_FROM_ADDRESS', env('MAIL_USERNAME', 'codifyhub25@gmail.com'));
+            if ($adminEmail) {
+                Mail::to($adminEmail)->send(new PengajuanBaruAdminMail($pengajuan));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send admin notification email: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Pengajuan kegiatan edukasi berhasil dikirim.',
@@ -83,11 +96,11 @@ class PengajuanEdukasiController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:pending,verifikasi,penjadwalan,konfirmasi,ditolak,selesai',
+            'status' => 'required|in:pending,verifikasi,penjadwalan,konfirmasi,disetujui,ditolak,selesai',
             'catatan_admin' => 'nullable|string'
         ]);
 
-        $pengajuan = PengajuanEdukasi::findOrFail($id);
+        $pengajuan = PengajuanEdukasi::with('user')->findOrFail($id);
         
         $pengajuan->status = $request->status;
         if ($request->has('catatan_admin')) {
@@ -96,10 +109,14 @@ class PengajuanEdukasiController extends Controller
 
         $pengajuan->save();
 
+        // Kirim email pembaruan status ke User (PIC)
         try {
-            Mail::to($pengajuan->email_pic)->send(new PengajuanStatusUpdated($pengajuan));
+            $recipientEmail = $pengajuan->email_pic ?: ($pengajuan->user ? $pengajuan->user->email : null);
+            if ($recipientEmail) {
+                Mail::to($recipientEmail)->send(new PengajuanStatusUpdated($pengajuan));
+            }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to queue status update email: ' . $e->getMessage());
+            Log::error('Failed to send status update email: ' . $e->getMessage());
         }
 
         return response()->json([

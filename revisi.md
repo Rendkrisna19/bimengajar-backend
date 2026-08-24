@@ -1,0 +1,1 @@
+artikel, berita, galeri
