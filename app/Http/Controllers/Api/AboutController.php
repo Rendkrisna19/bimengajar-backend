@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\About;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
@@ -37,7 +38,7 @@ class AboutController extends Controller
             'title_en' => 'nullable|string|max:255',
             'content' => 'required|string',
             'content_en' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120'
         ]);
 
         $about = About::firstOrCreate(
@@ -57,7 +58,7 @@ class AboutController extends Controller
                 Storage::disk('public')->delete($oldPath);
             }
 
-            $path = $request->file('image')->store('abouts', 'public');
+            $path = ImageUploadService::uploadAsWebp($request->file('image'), 'abouts', 85, 1600);
             $about->image = url('storage/' . $path);
         }
 

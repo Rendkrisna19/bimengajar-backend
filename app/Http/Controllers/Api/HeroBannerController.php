@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\HeroBanner;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -55,7 +56,7 @@ class HeroBannerController extends Controller
         $data = $validator->validated();
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('hero_banners', 'public');
+            $path = ImageUploadService::uploadAsWebp($request->file('image'), 'hero_banners', 85, 1920);
             $data['image'] = $path;
         }
 
@@ -73,14 +74,7 @@ class HeroBannerController extends Controller
 
     public function show($id)
     {
-        $banner = HeroBanner::find($id);
-
-        if (!$banner) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Hero Banner tidak ditemukan'
-            ], 404);
-        }
+        $banner = HeroBanner::findOrFail($id);
 
         return response()->json([
             'status' => 'success',
@@ -90,20 +84,13 @@ class HeroBannerController extends Controller
 
     public function update(Request $request, $id)
     {
-        $banner = HeroBanner::find($id);
-
-        if (!$banner) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Hero Banner tidak ditemukan'
-            ], 404);
-        }
+        $banner = HeroBanner::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
+            'title' => 'sometimes|required|string|max:255',
             'title_en' => 'nullable|string|max:255',
-            'subtitle' => 'required|string',
-            'subtitle_en' => 'nullable|string',
+            'description' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'button_primary_text' => 'nullable|string|max:255',
             'button_primary_text_en' => 'nullable|string|max:255',
             'button_primary_url' => 'nullable|string|max:255',
@@ -111,7 +98,7 @@ class HeroBannerController extends Controller
             'button_secondary_text_en' => 'nullable|string|max:255',
             'button_secondary_url' => 'nullable|string|max:255',
             'image' => 'nullable|file|mimes:jpeg,jpg,png,webp,svg,mp4,webm,ogg,mov,quicktime|max:51200',
-            'is_active' => 'nullable',
+            'is_active' => 'nullable|boolean',
             'order' => 'nullable|integer',
         ]);
 
@@ -129,7 +116,7 @@ class HeroBannerController extends Controller
             if ($banner->image && !filter_var($banner->image, FILTER_VALIDATE_URL)) {
                 Storage::disk('public')->delete($banner->image);
             }
-            $path = $request->file('image')->store('hero_banners', 'public');
+            $path = ImageUploadService::uploadAsWebp($request->file('image'), 'hero_banners', 85, 1920);
             $data['image'] = $path;
         }
 

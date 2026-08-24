@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MateriEdukasi;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -93,13 +94,13 @@ class MateriEdukasiController extends Controller
         if ($request->hasFile('images')) {
             $imagePaths = [];
             foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('materi/images', 'public');
+                $imagePaths[] = ImageUploadService::uploadAsWebp($image, 'materi/images', 82, 1600);
             }
             $data['images'] = $imagePaths;
         }
 
         if ($request->hasFile('thumbnail')) {
-            $data['thumbnail'] = $request->file('thumbnail')->store('materi/thumbnails', 'public');
+            $data['thumbnail'] = ImageUploadService::uploadAsWebp($request->file('thumbnail'), 'materi/thumbnails', 82, 1200);
         }
 
         if ($request->hasFile('file_upload')) {
@@ -116,6 +117,8 @@ class MateriEdukasiController extends Controller
 
     public function update(Request $request, $id)
     {
+        $materi = MateriEdukasi::findOrFail($id);
+
         $request->validate([
             'kategori_materi_id' => 'required|exists:kategori_materis,id',
             'judul' => 'required|string|max:255',
@@ -133,7 +136,6 @@ class MateriEdukasiController extends Controller
             'konten_teks' => 'nullable|string'
         ]);
 
-        $materi = MateriEdukasi::findOrFail($id);
         $data = $request->except(['thumbnail', 'file_upload', 'images']);
         
         if ($request->has('link_youtube')) {
@@ -146,10 +148,8 @@ class MateriEdukasiController extends Controller
 
         if ($request->hasFile('images')) {
             $imagePaths = [];
-            // Merge with existing images if needed, but standard edit is usually replace or append.
-            // For simplicity, we overwrite the existing extra images.
             foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('materi/images', 'public');
+                $imagePaths[] = ImageUploadService::uploadAsWebp($image, 'materi/images', 82, 1600);
             }
             // Delete old extra images if they exist
             if ($materi->images) {
@@ -168,7 +168,7 @@ class MateriEdukasiController extends Controller
             if ($materi->thumbnail) {
                 Storage::disk('public')->delete($materi->thumbnail);
             }
-            $data['thumbnail'] = $request->file('thumbnail')->store('materi/thumbnails', 'public');
+            $data['thumbnail'] = ImageUploadService::uploadAsWebp($request->file('thumbnail'), 'materi/thumbnails', 82, 1200);
         }
 
         if ($request->hasFile('file_upload')) {

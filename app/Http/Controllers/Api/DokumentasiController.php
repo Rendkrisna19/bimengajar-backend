@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Dokumentasi;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -58,7 +59,7 @@ class DokumentasiController extends Controller
         $imagePaths = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $img) {
-                $path = $img->store('dokumentasi', 'public');
+                $path = ImageUploadService::uploadAsWebp($img, 'dokumentasi', 82, 1600);
                 $imagePaths[] = Storage::url($path);
             }
         }
@@ -111,10 +112,10 @@ class DokumentasiController extends Controller
             $imagePaths = array_values(array_filter($imagePaths, fn($k) => !in_array($k, $toRemove), ARRAY_FILTER_USE_KEY));
         }
 
-        // Add new images
+        // Add new images converted to WebP
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $img) {
-                $path = $img->store('dokumentasi', 'public');
+                $path = ImageUploadService::uploadAsWebp($img, 'dokumentasi', 82, 1600);
                 $imagePaths[] = Storage::url($path);
             }
         }

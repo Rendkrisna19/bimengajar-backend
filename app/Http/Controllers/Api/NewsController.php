@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\News;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -45,8 +46,8 @@ class NewsController extends Controller
         $imagePaths = [];
         if ($request->hasFile('new_images')) {
             foreach ($request->file('new_images') as $image) {
-                $path = $image->store('news', 'public');
-                $imagePaths[] = config('app.url') . Storage::url($path);
+                $path = ImageUploadService::uploadAsWebp($image, 'news', 82, 1600);
+                $imagePaths[] = url('storage/' . $path);
             }
         }
 
@@ -84,8 +85,8 @@ class NewsController extends Controller
         
         if ($request->hasFile('new_images')) {
             foreach ($request->file('new_images') as $image) {
-                $path = $image->store('news', 'public');
-                $imagePaths[] = config('app.url') . Storage::url($path);
+                $path = ImageUploadService::uploadAsWebp($image, 'news', 82, 1600);
+                $imagePaths[] = url('storage/' . $path);
             }
         }
 

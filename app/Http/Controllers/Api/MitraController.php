@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mitra;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -63,7 +64,7 @@ class MitraController extends Controller
             'kategori' => 'required|string|max:255',
             'lokasi' => 'required|string|max:255',
             'no_wa' => 'required|string|max:20',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg,webp|max:5120',
         ]);
 
         if ($validator->fails()) {
@@ -82,7 +83,7 @@ class MitraController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('mitra', 'public');
+            $path = ImageUploadService::uploadAsWebp($request->file('logo'), 'mitra', 85, 1200);
             $data['logo'] = '/storage/' . $path;
         }
 
@@ -108,7 +109,7 @@ class MitraController extends Controller
             if ($mitra->logo && strpos($mitra->logo, '/storage/') === 0) {
                 Storage::disk('public')->delete(str_replace('/storage/', '', $mitra->logo));
             }
-            $path = $request->file('logo')->store('mitra', 'public');
+            $path = ImageUploadService::uploadAsWebp($request->file('logo'), 'mitra', 85, 1200);
             $data['logo'] = '/storage/' . $path;
         }
 
