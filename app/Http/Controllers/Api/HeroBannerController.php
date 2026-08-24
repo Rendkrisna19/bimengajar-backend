@@ -39,7 +39,7 @@ class HeroBannerController extends Controller
             'button_secondary_text' => 'nullable|string|max:255',
             'button_secondary_text_en' => 'nullable|string|max:255',
             'button_secondary_url' => 'nullable|string|max:255',
-            'image' => 'nullable|file|image|mimes:jpeg,jpg,png,webp,svg|max:5120',
+            'image' => 'nullable|file|mimes:jpeg,jpg,png,webp,svg,mp4,webm,ogg,mov,quicktime|max:51200',
             'is_active' => 'nullable|boolean',
             'order' => 'nullable|integer',
         ]);
@@ -110,7 +110,7 @@ class HeroBannerController extends Controller
             'button_secondary_text' => 'nullable|string|max:255',
             'button_secondary_text_en' => 'nullable|string|max:255',
             'button_secondary_url' => 'nullable|string|max:255',
-            'image' => 'nullable|file|image|mimes:jpeg,jpg,png,webp,svg|max:5120',
+            'image' => 'nullable|file|mimes:jpeg,jpg,png,webp,svg,mp4,webm,ogg,mov,quicktime|max:51200',
             'is_active' => 'nullable',
             'order' => 'nullable|integer',
         ]);
