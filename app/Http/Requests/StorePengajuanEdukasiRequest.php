@@ -32,13 +32,16 @@ class StorePengajuanEdukasiRequest extends FormRequest
             'email_pic' => 'required|email|max:255',
             'no_telp_pic' => 'required|string|max:20',
             'tema_kegiatan' => 'nullable|string|max:255',
+            'tujuan_kegiatan' => 'nullable|string',
             'deskripsi_kegiatan' => 'nullable|string',
             'jumlah_peserta' => 'nullable|integer|min:1',
             'tanggal_kegiatan' => 'nullable|date',
-            'waktu_mulai' => 'nullable|date_format:H:i',
-            'waktu_selesai' => 'nullable|date_format:H:i|after:waktu_mulai',
+            'waktu_mulai' => 'nullable|string',
+            'waktu_selesai' => 'nullable|string',
+            'durasi' => 'nullable|string',
+            'kota_kabupaten' => 'required|string|in:Pematangsiantar,Simalungun,Batubara,Asahan,Tanjungbalai,Labuhanbatu Utara,Labuhanbatu,Labuhanbatu Selatan',
             'lokasi_kegiatan' => 'nullable|string|max:255',
-            'dokumen_proposal' => 'nullable|file|mimes:pdf|max:10240', // PDF max 10MB (optional)
+            'dokumen_proposal' => 'required|file|mimes:pdf,doc,docx,zip|max:10240', // File proposal WAJIB (PDF/DOC/ZIP max 10MB)
         ];
     }
 }
