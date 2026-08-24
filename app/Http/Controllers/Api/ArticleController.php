@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ArticleController extends Controller
 {
@@ -41,12 +43,12 @@ class ArticleController extends Controller
             'new_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']) . '-' . time();
+        $validated['slug'] = Str::slug($validated['title']) . '-' . time();
         
         $images = [];
         if ($request->hasFile('new_images')) {
             foreach ($request->file('new_images') as $file) {
-                $path = $file->store('articles', 'public');
+                $path = ImageUploadService::uploadAsWebp($file, 'articles', 82, 1600);
                 $images[] = url('storage/' . $path);
             }
         }
@@ -73,14 +75,14 @@ class ArticleController extends Controller
         ]);
 
         if ($article->title !== $validated['title']) {
-            $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']) . '-' . time();
+            $validated['slug'] = Str::slug($validated['title']) . '-' . time();
         }
 
         $images = $request->input('existing_images', []);
         
         if ($request->hasFile('new_images')) {
             foreach ($request->file('new_images') as $file) {
-                $path = $file->store('articles', 'public');
+                $path = ImageUploadService::uploadAsWebp($file, 'articles', 82, 1600);
                 $images[] = url('storage/' . $path);
             }
         }

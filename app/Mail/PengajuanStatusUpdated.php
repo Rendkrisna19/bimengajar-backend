@@ -28,8 +28,33 @@ class PengajuanStatusUpdated extends Mailable
      */
     public function envelope(): Envelope
     {
+        $status = strtolower($this->pengajuan->status ?? 'pending');
+        $instansi = $this->pengajuan->nama_instansi ?: 'Instansi';
+
+        switch ($status) {
+            case 'disetujui':
+            case 'konfirmasi':
+                $subject = "[Plat-BK] Pengajuan Kegiatan Edukasi Disetujui ({$instansi})";
+                break;
+            case 'ditolak':
+                $subject = "[Plat-BK] Pembaruan Status Pengajuan Edukasi ({$instansi})";
+                break;
+            case 'penjadwalan':
+                $subject = "[Plat-BK] Pengajuan Edukasi Dalam Tahap Penjadwalan ({$instansi})";
+                break;
+            case 'verifikasi':
+                $subject = "[Plat-BK] Pengajuan Edukasi Dalam Tahap Verifikasi ({$instansi})";
+                break;
+            case 'selesai':
+                $subject = "[Plat-BK] Kegiatan Edukasi Telah Selesai ({$instansi})";
+                break;
+            default:
+                $subject = "[Plat-BK] Pembaruan Status Pengajuan Edukasi ({$instansi})";
+                break;
+        }
+
         return new Envelope(
-            subject: 'Pembaruan Status Kegiatan Edukasi: ' . strtoupper($this->pengajuan->status),
+            subject: $subject,
         );
     }
 
