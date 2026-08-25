@@ -96,6 +96,19 @@ Route::get('/coin-providers/{id}', [CoinProviderController::class, 'show']);
 Route::get('/kalender', [KalenderKegiatanController::class, 'index']);
 Route::get('/kalender/{id}', [KalenderKegiatanController::class, 'show']);
 
+// Pre & Post Test — public
+Route::get('/pre-post-test', [\App\Http\Controllers\Api\PrePostTestController::class, 'index']);
+Route::get('/pre-post-test/{id}', [\App\Http\Controllers\Api\PrePostTestController::class, 'show']);
+Route::post('/pre-post-test/{id}/submit', [\App\Http\Controllers\Api\PrePostTestController::class, 'submitTest']);
+
+// Pre & Post Test — Admin / CMS Endpoints
+Route::get('/admin/pre-post-test', [\App\Http\Controllers\Api\PrePostTestController::class, 'index']);
+Route::post('/admin/pre-post-test', [\App\Http\Controllers\Api\PrePostTestController::class, 'store']);
+Route::put('/admin/pre-post-test/{id}', [\App\Http\Controllers\Api\PrePostTestController::class, 'update']);
+Route::delete('/admin/pre-post-test/{id}', [\App\Http\Controllers\Api\PrePostTestController::class, 'destroy']);
+Route::get('/admin/pre-post-test/submissions', [\App\Http\Controllers\Api\PrePostTestController::class, 'getSubmissions']);
+Route::delete('/admin/pre-post-test/submissions/{id}', [\App\Http\Controllers\Api\PrePostTestController::class, 'deleteSubmission']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
