@@ -20,6 +20,7 @@ class CreateUlasansTable extends Migration
             $table->string('instansi'); // Sekolah / Universitas
             $table->text('komentar');
             $table->integer('rating')->default(5);
+            $table->string('status')->default('disetujui');
             $table->timestamps();
         });
     }
