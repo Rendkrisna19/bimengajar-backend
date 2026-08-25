@@ -395,6 +395,11 @@ class PrePostTestController extends Controller
 
         $submissions = $query->get();
 
+        // Top 5 highest scores
+        $top5 = $submissions->sortByDesc(function ($s) {
+            return $s->skor_maksimal > 0 ? ($s->skor_total / $s->skor_maksimal) : 0;
+        })->take(5)->values();
+
         $totalSubmissions = $submissions->count();
         $avgScore = $totalSubmissions > 0 ? round($submissions->avg('skor_total'), 1) : 0;
         $lulusCount = $submissions->filter(function ($s) {
@@ -408,6 +413,7 @@ class PrePostTestController extends Controller
                 'rata_rata_skor' => $avgScore,
                 'total_lulus' => $lulusCount,
                 'persentase_lulus' => $totalSubmissions > 0 ? round(($lulusCount / $totalSubmissions) * 100) : 0,
+                'top_5' => $top5,
             ],
             'data' => $submissions
         ]);
