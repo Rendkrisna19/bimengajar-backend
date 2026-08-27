@@ -41,7 +41,7 @@ class FooterSettingController extends Controller
      */
     public function update(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'deskripsi' => 'nullable|string',
             'alamat' => 'nullable|string',
             'telepon' => 'nullable|string',
@@ -55,27 +55,14 @@ class FooterSettingController extends Controller
         ]);
 
         $setting = FooterSetting::first();
-
-        if (!$setting) {
-            $setting = new FooterSetting();
+        if ($setting) {
+            $setting->update($validated);
+        } else {
+            $setting = FooterSetting::create($validated);
         }
 
-        $setting->fill($request->only([
-            'deskripsi',
-            'alamat',
-            'telepon',
-            'email',
-            'instagram_url',
-            'youtube_url',
-            'facebook_url',
-            'twitter_url',
-            'tiktok_url',
-            'copyright_text',
-        ]));
-
-        $setting->save();
-
         return response()->json([
+            'status' => 'success',
             'message' => 'Pengaturan footer berhasil diperbarui',
             'data' => $setting
         ]);
