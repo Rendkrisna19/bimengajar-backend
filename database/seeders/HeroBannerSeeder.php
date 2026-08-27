@@ -43,7 +43,7 @@ class HeroBannerSeeder extends Seeder
             [
                 'title' => "Layanan Penukaran\nUang Logam",
                 'title_en' => "Coin Exchange\nServices",
-                'subtitle' => 'Gunakan platform Pojok Koin untuk menukarkan uang logam dengan mudah dan bantu sirkulasi koin di masyarakat.',
+                'subtitle' => 'Gunakan platform Pojok Koin untuk menukarkan uang logam dengan mudah dan bantu sirkulasi logam di masyarakat.',
                 'subtitle_en' => 'Use the Coin Corner platform to easily exchange coins and help coin circulation in the community.',
                 'button_primary_text' => 'Cari Lokasi Penukaran',
                 'button_primary_text_en' => 'Find Location',
