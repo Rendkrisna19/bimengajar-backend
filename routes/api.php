@@ -122,6 +122,7 @@ Route::get('/quiz-sessions/{pin}', [\App\Http\Controllers\Api\QuizController::cl
 Route::post('/quiz-sessions/create', [\App\Http\Controllers\Api\QuizController::class, 'createLiveSession']);
 Route::post('/quiz-sessions/join', [\App\Http\Controllers\Api\QuizController::class, 'joinLiveSession']);
 Route::post('/quiz-sessions/start', [\App\Http\Controllers\Api\QuizController::class, 'startLiveSessionGame']);
+Route::post('/quiz-sessions/score', [\App\Http\Controllers\Api\QuizController::class, 'updateParticipantScore']);
 Route::post('/quiz-sessions/close', [\App\Http\Controllers\Api\QuizController::class, 'closeLiveSession']);
 
 Route::middleware(['auth:sanctum'])->group(function () {

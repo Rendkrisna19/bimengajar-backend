@@ -371,6 +371,50 @@ class QuizController extends Controller
         ]);
     }
 
+    // POST /api/quiz-sessions/score - Update participant score in live session
+    public function updateParticipantScore(Request $request)
+    {
+        $validated = $request->validate([
+            'pin_code' => 'required|string',
+            'nickname' => 'required|string',
+            'score' => 'required|integer',
+            'streak' => 'nullable|integer',
+        ]);
+
+        $pin = trim($validated['pin_code']);
+        $nickname = trim($validated['nickname']);
+        $score = (int) $validated['score'];
+        $streak = (int) ($validated['streak'] ?? 0);
+
+        $session = QuizSession::where('pin_code', $pin)->latest('id')->first();
+        if (!$session) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi kuis tidak ditemukan'], 404);
+        }
+
+        $participants = $session->participants ?? [];
+        $found = false;
+
+        foreach ($participants as &$p) {
+            if (isset($p['nickname']) && strtolower(trim($p['nickname'])) === strtolower($nickname)) {
+                $p['score'] = $score;
+                $p['streak'] = $streak;
+                $found = true;
+                break;
+            }
+        }
+
+        if ($found) {
+            $session->participants = $participants;
+            $session->save();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Skor peserta berhasil diperbarui',
+            'data' => $this->formatSession($session)
+        ]);
+    }
+
     // POST /api/quiz-sessions/close - Host Close Live Room (updates DB status='finished')
     public function closeLiveSession(Request $request)
     {
