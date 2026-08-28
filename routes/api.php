@@ -109,6 +109,17 @@ Route::delete('/admin/pre-post-test/{id}', [\App\Http\Controllers\Api\PrePostTes
 Route::get('/admin/pre-post-test/submissions', [\App\Http\Controllers\Api\PrePostTestController::class, 'getSubmissions']);
 Route::delete('/admin/pre-post-test/submissions/{id}', [\App\Http\Controllers\Api\PrePostTestController::class, 'deleteSubmission']);
 
+// Quizzes & Interactive Games — API Endpoints
+Route::get('/quizzes', [\App\Http\Controllers\Api\QuizController::class, 'index']);
+Route::get('/quizzes/{id}', [\App\Http\Controllers\Api\QuizController::class, 'show']);
+Route::post('/quizzes', [\App\Http\Controllers\Api\QuizController::class, 'store']);
+Route::put('/quizzes/{id}', [\App\Http\Controllers\Api\QuizController::class, 'update']);
+Route::delete('/quizzes/{id}', [\App\Http\Controllers\Api\QuizController::class, 'destroy']);
+Route::get('/quiz-results', [\App\Http\Controllers\Api\QuizController::class, 'getResults']);
+Route::post('/quiz-results', [\App\Http\Controllers\Api\QuizController::class, 'storeResult']);
+Route::delete('/quiz-results', [\App\Http\Controllers\Api\QuizController::class, 'clearResults']);
+Route::post('/quiz-sessions/create', [\App\Http\Controllers\Api\QuizController::class, 'createLiveSession']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
