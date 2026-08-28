@@ -117,8 +117,12 @@ Route::put('/quizzes/{id}', [\App\Http\Controllers\Api\QuizController::class, 'u
 Route::delete('/quizzes/{id}', [\App\Http\Controllers\Api\QuizController::class, 'destroy']);
 Route::get('/quiz-results', [\App\Http\Controllers\Api\QuizController::class, 'getResults']);
 Route::post('/quiz-results', [\App\Http\Controllers\Api\QuizController::class, 'storeResult']);
-Route::delete('/quiz-results', [\App\Http\Controllers\Api\QuizController::class, 'clearResults']);
+Route::get('/quiz-sessions/active', [\App\Http\Controllers\Api\QuizController::class, 'getActiveLiveSession']);
+Route::get('/quiz-sessions/{pin}', [\App\Http\Controllers\Api\QuizController::class, 'getLiveSessionByPin']);
 Route::post('/quiz-sessions/create', [\App\Http\Controllers\Api\QuizController::class, 'createLiveSession']);
+Route::post('/quiz-sessions/join', [\App\Http\Controllers\Api\QuizController::class, 'joinLiveSession']);
+Route::post('/quiz-sessions/start', [\App\Http\Controllers\Api\QuizController::class, 'startLiveSessionGame']);
+Route::post('/quiz-sessions/close', [\App\Http\Controllers\Api\QuizController::class, 'closeLiveSession']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

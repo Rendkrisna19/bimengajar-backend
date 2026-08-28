@@ -195,17 +195,78 @@ class QuizController extends Controller
         ]);
     }
 
-    // POST /api/quiz-sessions/create - Admin Launch Live Room
+    private function formatSession(QuizSession $session)
+    {
+        $session->loadMissing('quiz.questions');
+        $quiz = $session->quiz;
+        return [
+            'id' => $session->id,
+            'pin_code' => $session->pin_code,
+            'quiz_id' => (string)$session->quiz_id,
+            'quiz_title' => $quiz ? $quiz->title : 'Kuis Interaktif BI',
+            'status' => $session->status,
+            'current_question_index' => $session->current_question_index ?? 0,
+            'host_name' => $session->host_name ?? 'Edukator BI',
+            'participants' => $session->participants ?? [],
+            'quiz' => $quiz,
+        ];
+    }
+
+    // GET /api/quiz-sessions/active - Get current active live room
+    public function getActiveLiveSession()
+    {
+        $session = QuizSession::whereIn('status', ['waiting', 'playing'])
+            ->latest('id')
+            ->first();
+
+        if (!$session) {
+            return response()->json([
+                'status' => 'success',
+                'data' => null
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $this->formatSession($session)
+        ]);
+    }
+
+    // GET /api/quiz-sessions/{pin} - Get live room by PIN
+    public function getLiveSessionByPin($pin)
+    {
+        $session = QuizSession::where('pin_code', trim($pin))->first();
+
+        if (!$session) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Ruangan live quiz tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $this->formatSession($session)
+        ]);
+    }
+
+    // POST /api/quiz-sessions/create - Admin Launch Live Room (saves to DB table quiz_sessions)
     public function createLiveSession(Request $request)
     {
         $validated = $request->validate([
-            'quiz_id' => 'required|integer',
+            'quiz_id' => 'required',
+            'pin_code' => 'nullable|string|size:6',
+            'host_name' => 'nullable|string',
         ]);
 
-        $pin = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        // Finish any previously active sessions first
+        QuizSession::whereIn('status', ['waiting', 'playing'])->update(['status' => 'finished']);
+
+        $pin = $validated['pin_code'] ?? str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $quiz = Quiz::find($validated['quiz_id']);
 
         $session = QuizSession::create([
-            'quiz_id' => $validated['quiz_id'],
+            'quiz_id' => $quiz ? $quiz->id : 1,
             'pin_code' => $pin,
             'status' => 'waiting',
             'current_question_index' => 0,
@@ -214,8 +275,124 @@ class QuizController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Live Room berhasil dibuka',
-            'data' => $session->load('quiz.questions')
+            'message' => 'Live Room berhasil dibuka dan disimpan ke database',
+            'data' => $this->formatSession($session)
+        ], 201);
+    }
+
+    // POST /api/quiz-sessions/join - User Join Live Room (validates duplicate nickname in DB)
+    public function joinLiveSession(Request $request)
+    {
+        $validated = $request->validate([
+            'pin_code' => 'required|string',
+            'nickname' => 'required|string|max:30',
+            'avatar' => 'nullable|string',
+        ]);
+
+        $pin = trim($validated['pin_code']);
+        $nickname = trim($validated['nickname']);
+        $avatar = $validated['avatar'] ?? 'avatar-1';
+
+        $session = QuizSession::where('pin_code', $pin)->latest('id')->first();
+
+        if (!$session) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Game PIN tidak valid! Pastikan Anda memasukkan PIN 6-digit yang diberikan Host.'
+            ], 404);
+        }
+
+        if ($session->status === 'finished') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sesi live room ini sudah selesai. Minta Host untuk membuka sesi baru.'
+            ], 400);
+        }
+
+        $participants = $session->participants ?? [];
+
+        // Check duplicate nickname (case-insensitive)
+        foreach ($participants as $p) {
+            if (isset($p['nickname']) && strtolower(trim($p['nickname'])) === strtolower($nickname)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Nickname '{$nickname}' sudah dipakai oleh peserta lain di room ini! Silakan gunakan nama berbeda."
+                ], 422);
+            }
+        }
+
+        // Add new participant
+        $participants[] = [
+            'id' => 'p-' . time() . '-' . Str::random(5),
+            'nickname' => $nickname,
+            'avatar' => $avatar,
+            'score' => 0,
+            'streak' => 0,
+        ];
+
+        $session->participants = $participants;
+        $session->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Berhasil bergabung ke Live Room',
+            'data' => $this->formatSession($session)
+        ]);
+    }
+
+    // POST /api/quiz-sessions/start - Host Start Game (updates DB status='playing')
+    public function startLiveSessionGame(Request $request)
+    {
+        $pin = $request->input('pin_code');
+
+        $query = QuizSession::query();
+        if ($pin) {
+            $query->where('pin_code', trim($pin));
+        } else {
+            $query->where('status', 'waiting');
+        }
+
+        $session = $query->latest('id')->first();
+
+        if (!$session) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Ruangan live kuis tidak ditemukan atau sudah berjalan.'
+            ], 404);
+        }
+
+        $session->status = 'playing';
+        $session->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Live Game berhasil dimulai',
+            'data' => $this->formatSession($session)
+        ]);
+    }
+
+    // POST /api/quiz-sessions/close - Host Close Live Room (updates DB status='finished')
+    public function closeLiveSession(Request $request)
+    {
+        $pin = $request->input('pin_code');
+
+        $query = QuizSession::query();
+        if ($pin) {
+            $query->where('pin_code', trim($pin));
+        } else {
+            $query->whereIn('status', ['waiting', 'playing']);
+        }
+
+        $session = $query->latest('id')->first();
+
+        if ($session) {
+            $session->status = 'finished';
+            $session->save();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Live Room berhasil ditutup di database'
         ]);
     }
 }
