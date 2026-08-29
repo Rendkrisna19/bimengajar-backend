@@ -22,7 +22,7 @@ class ResetPasswordOtpMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Reset Password OTP - BI Mengajar')
+        return $this->subject('Reset Password OTP - PLAT-BK')
                     ->view('emails.reset_otp');
     }
 }

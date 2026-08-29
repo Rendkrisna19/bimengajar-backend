@@ -22,7 +22,7 @@ class SendOtpMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Kode Verifikasi OTP - BI Mengajar')
+        return $this->subject('Kode Verifikasi OTP - PLAT-BK')
                     ->view('emails.otp');
     }
 }
