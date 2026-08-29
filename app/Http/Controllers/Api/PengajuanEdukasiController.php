@@ -55,15 +55,17 @@ class PengajuanEdukasiController extends Controller
         $pengajuan = PengajuanEdukasi::create($data);
         $pengajuan->load('user');
 
-        // Kirim email notifikasi ke admin (dengan lampiran file proposal)
-        try {
-            $adminEmail = config('mail.from.address') ?: env('MAIL_FROM_ADDRESS', env('MAIL_USERNAME', 'codifyhub25@gmail.com'));
-            if ($adminEmail) {
-                Mail::to($adminEmail)->send(new PengajuanBaruAdminMail($pengajuan));
+        // Kirim email notifikasi ke admin secara asynchronous setelah response dikirim ke user
+        dispatch(function () use ($pengajuan) {
+            try {
+                $adminEmail = config('mail.from.address') ?: env('MAIL_FROM_ADDRESS', env('MAIL_USERNAME', 'notifications@platbkbi.id'));
+                if ($adminEmail) {
+                    Mail::to($adminEmail)->send(new PengajuanBaruAdminMail($pengajuan));
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to send admin notification email: ' . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            Log::error('Failed to send admin notification email: ' . $e->getMessage());
-        }
+        })->afterResponse();
 
         return response()->json([
             'message' => 'Pengajuan kegiatan edukasi berhasil dikirim.',
@@ -109,15 +111,17 @@ class PengajuanEdukasiController extends Controller
 
         $pengajuan->save();
 
-        // Kirim email pembaruan status ke User (PIC)
-        try {
-            $recipientEmail = $pengajuan->email_pic ?: ($pengajuan->user ? $pengajuan->user->email : null);
-            if ($recipientEmail) {
-                Mail::to($recipientEmail)->send(new PengajuanStatusUpdated($pengajuan));
+        // Kirim email pembaruan status ke User (PIC) secara asynchronous setelah response dikirim
+        dispatch(function () use ($pengajuan) {
+            try {
+                $recipientEmail = $pengajuan->email_pic ?: ($pengajuan->user ? $pengajuan->user->email : null);
+                if ($recipientEmail) {
+                    Mail::to($recipientEmail)->send(new PengajuanStatusUpdated($pengajuan));
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to send status update email: ' . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            Log::error('Failed to send status update email: ' . $e->getMessage());
-        }
+        })->afterResponse();
 
         return response()->json([
             'message' => 'Status pengajuan berhasil diperbarui.',

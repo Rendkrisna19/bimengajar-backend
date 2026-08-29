@@ -47,16 +47,25 @@ class AuthController extends Controller
     {
         $this->ensureIsNotRateLimited($request);
 
-        if (! Auth::attempt($request->only('email', 'password'))) {
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
             RateLimiter::hit($this->throttleKey($request));
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'email' => ['Alamat email tidak terdaftar dalam sistem.'],
             ]);
         }
 
-        RateLimiter::clear($this->throttleKey($request));
+        if (! Hash::check($request->password, $user->password)) {
+            RateLimiter::hit($this->throttleKey($request));
+            throw ValidationException::withMessages([
+                'password' => ['Password yang Anda masukkan salah.'],
+            ]);
+        }
 
-        $user = Auth::user();
+        Auth::login($user);
+
+        RateLimiter::clear($this->throttleKey($request));
 
         if ($user->role === 'user' && is_null($user->email_verified_at)) {
             // Generate new OTP if expired or not exists
